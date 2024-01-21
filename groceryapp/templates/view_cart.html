@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}View Cart{% endblock %}
+{% block content %}
+<header class="p-1 text-bg-dark">
+  <div class="container">
+    <div
+      class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between"
+    >
+      <p class="fs-2 m-0">{{ uname }}</p>
+      <div class="text-end">
+        <a href="/products/{{ uname }}" class="btn btn-warning me-2 "> Back </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container mt-5">
+  <h1 class="text-center">Cart</h1>
+  <p class="text-center">User: {{ uname }}</p>
+
+  <div class="row mb-3">
+    <div class="col">
+      <h5>Item Name</h5>
+    </div>
+    <div class="col">
+      <h5>Quantity</h5>
+    </div>
+    <div class="col">
+      <h5>Cost</h5>
+    </div>
+    <div class="col">
+        <h5>Actions</h5>
+    </div> 
+  </div>
+
+  {% for cart_item in cart_items %}
+<div class="row mb-2 cart-item" data-product-id="{{ cart_item.product_id }}" data-quantity="{{ cart_item.quantity }}">    <div class="col">
+      {{ cart_item.item_name }} 
+    </div>
+    <div class="col">
+      {{ cart_item.quantity }}
+    </div>
+    <div class="col">
+      Rs.{{ cart_item.cost }}
+    </div>
+    <div class="col">
+    <button class="btn btn-danger remove-from-cart-btn" data-item-id="{{ cart_item.id }}" data-user-id="{{uname}}">Remove</button>    </div>
+  </div>
+  {% endfor %}
+
+  <div class="text-center mt-3">
+    <p class="fw-bold">Total: Rs.{{ total_amount }}</p>
+<button class="btn btn-primary checkout-btn" data-user-id="{{ uname }}">Checkout</button>
+</div>
+  </div>
+</div>
+  <script src="{{ url_for('static', filename='js/userScript.js') }}"></script>
+
+{% endblock %}

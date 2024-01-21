@@ -1,0 +1,425 @@
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<header class="p-1 text-bg-dark">
+  <div class="container">
+    <div
+      class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between"
+    >
+      <p class="fs-2 m-0">{{ uname }}</p>
+      <div class="text-end">
+        <a href="/summary" class="btn btn-outline-warning me-2">Summary</a>
+        <a href="/logout" class="btn btn-outline-primary me-2"> Logout </a>
+      </div>
+    </div>
+  </div>
+</header>
+{% if category_error %}
+<div class="alert alert-danger" role="alert">
+  Category with the same name already exists.
+  <a href="{{ url_for('admindash') }}" class="alert-link">Close</a>
+</div>
+{% endif %} {% if not data1 %}
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+  No categories found. Please add categories.
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{% endif %} {% if not data2 %}
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+  No items found. Please add items.
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{% endif %}
+
+<div class="container-fluid container-bg py-3">
+  {% set columns_per_row = 3 %}
+  <!-- Loop through categories -->
+  <div class="row row-cols-3">
+    {% for category in data1 %} {% if loop.index % columns_per_row == 1 %}
+    <div class="w-100"></div>
+    {% endif %}
+    <!-- Display category card -->
+    <div class="col">
+      <div class="card mb-4 rounded-3 shadow-sm text-left">
+        <div class="card-header py-3">
+          <h4 class="my-0 fw-normal text-center">{{ category.name }}</h4>
+        </div>
+        <div class="card-body">
+          <!-- Display items in the category -->
+          <div class="card mb-4 text-center flex-column">
+            {% for item in data2 %} {% if item.category_id == category.id %}
+            <div class="fs-5 d-flex justify-content-between my-1 px-2">
+              <div>{{ item.name }}</div>
+              <div>
+                <button
+                  class="btn btn-warning edit-item-btn"
+                  data-item-id="{{ item.id }}"
+                  data-item-name="{{ item.name }}"
+                  data-item-quantity="{{ item.quantity }}"
+                  data-item-unit="{{ item.unit }}"
+                  data-item-rate="{{ item.rate }}"
+                  data-bs-toggle="modal"
+                  data-bs-target="#editItemModal"
+                >
+                  Edit
+                </button>
+                <button
+                  class="btn btn-danger item-delete-btn"
+                  data-item-id="{{ item.id }}"
+                  data-bs-toggle="modal"
+                  type="button"
+                  data-bs-target="#deleteItemModal"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            {% endif %} {% endfor %}
+          </div>
+          <!-- Add Button -->
+          <div class="text-center pb-2">
+            <button
+              class="btn btn-primary item-btn rounded-4 px-4"
+              data-category-id="{{ category.id }}"
+              data-bs-toggle="modal"
+              type="button"
+              data-bs-target="#addItem"
+            >
+              +
+            </button>
+          </div>
+          <!-- Edit and Delete Buttons -->
+          <div class="text-center d-flex justify-content-between px-5">
+            <button
+              class="btn btn-primary category-edit-btn category-btn"
+              data-category-id="{{ category.id }}"
+              data-category-name="{{ category.name }}"
+              data-bs-toggle="modal"
+              data-bs-target="#editCategoryModal"
+            >
+              Edit
+            </button>
+            <button
+              class="btn btn-danger category-delete-btn"
+              data-category-id="{{ category.id }}"
+              data-bs-toggle="modal"
+              type="button"
+              data-bs-target="#deleteCategoryModal"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<button
+  class="btn btn-primary rounded-4 fs-3 btn-md px-5 py-2 position-fixed bottom-0 end-0 mb-3 me-3"
+  data-bs-toggle="modal"
+  type="button"
+  data-bs-target="#addCategory"
+  style="z-index: 999 !important"
+>
+  +
+</button>
+
+<div class="modal fade" id="editCategoryModal" role="dialog" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Category</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form action="/edit_category/{{ uname }}" method="POST" id="editCategoryForm">
+          <input type="hidden" name="category_id" id="editCategoryId" />
+          <div class="mb-3">
+            <label for="editCategoryName" class="form-label"
+              >Category Name:</label
+            >
+            <input
+              type="text"
+              name="edit_category_name"
+              id="editCategoryName"
+              class="form-control"
+            />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary" form="editCategoryForm">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editItemModal" role="dialog" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Item</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form action="/edit_item/{{ uname }}" method="POST" id="editItemForm">
+          <input type="hidden" name="item_id" id="editItemId" />
+          <div class="mb-3">
+            <label for="editItemName" class="form-label">Item Name:</label>
+            <input
+              type="text"
+              name="editItemName"
+              id="editItemName"
+              class="form-control"
+            />
+            <label for="editItemUnit" class="form-label">Unit:</label>
+            <select name="unit" id="editItemUnit" class="form-select">
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="lb">lb</option>
+              <option value="oz">oz</option>
+              <option value="each">each</option>
+              <option value="piece">piece</option>
+              <option value="litre">litre</option>
+              <option value="ml">ml</option>
+              <option value="dozen">dozen</option>
+              <!-- Add more options as needed -->
+            </select>
+
+            <label for="editItemRate" class="form-label">Rate/unit:</label>
+            <input
+              type="number"
+              name="rate"
+              id="editItemRate"
+              class="form-control"
+            />
+            <label for="editItemQuantity" class="form-label">Quantity:</label>
+            <input
+              type="number"
+              name="quantity"
+              id="editItemQuantity"
+              class="form-control"
+            />
+          </div>
+          <label for="date" class="form-label">Manufactured Date:</label>
+            <input
+              type="date"
+              name="date"
+              id="date"
+              class="form-control"
+              placeholder="Select Date"
+            />
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          id="saveItemButton"
+          form="editItemForm"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Category Modal -->
+<div class="modal fade" id="deleteCategoryModal" role="dialog" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Deletion</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this category?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteCategory">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Item Modal -->
+<div class="modal fade" id="deleteItemModal" role="dialog" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Deletion</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">Are you sure you want to delete this item?</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteItem">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategory" role="dialog" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add a Category</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form action="/adminDashboard/{{ uname }}" method="POST" id="createcategoryform">
+          <div class="mb-3">
+            <label for="category" class="form-label">Category Name:</label>
+            <input
+              type="text"
+              name="category"
+              id="categoryInput"
+              class="form-control"
+              placeholder="Enter category name"
+            />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          form="createcategoryform"
+          name="newCategory"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItem" role="dialog" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add an Item</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form action="/adminDashboard/{{ uname }}" method="post" id="createitemform">
+          <div class="mb-3">
+            <label for="itemname" class="form-label">Item Name:</label>
+            <input
+              type="text"
+              name="itemname"
+              id="itemname"
+              class="form-control"
+              placeholder="Enter item name"
+            />
+            <label for="editItemUnit" class="form-label">Unit:</label>
+            <select name="unit" id="editItemUnit" class="form-select">
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="lb">lb</option>
+              <option value="oz">oz</option>
+              <option value="each">each</option>
+              <option value="piece">piece</option>
+              <option value="litre">litre</option>
+              <option value="ml">ml</option>
+              <option value="dozen">dozen</option>
+              <!-- Add more options as needed -->
+            </select>
+            <label for="rate" class="form-label">Rate/unit:</label>
+            <input
+              type="number"
+              name="rate"
+              id="rate"
+              class="form-control"
+              placeholder="Enter Rate"
+            />
+            <label for="quantity" class="form-label">Quantity:</label>
+            <input
+              type="number"
+              name="quantity"
+              id="quantity"
+              class="form-control"
+              placeholder="Enter Quantity"
+            />
+            <label for="date" class="form-label">Manufactured Date:</label>
+            <input
+              type="date"
+              name="date"
+              id="date"
+              class="form-control"
+              placeholder="Select Date"
+            />
+            <input type="hidden" name="category_id" id="category_id" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="submit"
+          form="createitemform"
+          class="btn btn-primary"
+          name="newItem"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/adminScript.js') }}"></script>
+{% endblock %}
